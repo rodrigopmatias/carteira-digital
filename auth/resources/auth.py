@@ -98,6 +98,38 @@ def token(request):
         status=status
     )
 
+def renew_token(request):
+    status = 501
+    result = {
+        "message": "method not implemented"
+    }
+
+    if request.method == 'GET':
+        user = getattr(request, 'user', None)
+
+        if user and user.is_active:
+            status = 200
+            result = {
+                'token': jwt.encode(
+                    {
+                        'user_id': user.pk,
+                        "iat": datetime.utcnow(),
+                        "exp": datetime.utcnow() + timedelta(minutes=15)
+                    },
+                    'secr3t',
+                    algorithm="HS256"
+                )
+            }
+    else:
+        return HttpResponseNotAllowed(
+            permitted_methods=['GET']
+        )
+
+    return JsonResponse(
+        result,
+        status=status
+    )
+
 def me(request):
     status = 401
     result = {
