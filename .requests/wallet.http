@@ -1,0 +1,32 @@
+@baseURL = http://127.0.0.1:8000
+@resource = wallets
+
+###
+# @name create
+POST {{baseURL}}/{{resource}}
+Content-Type: application/json
+
+{
+    "name": "Wallet 1"
+}
+
+###
+# @name all
+GET {{baseURL}}/{{resource}}
+
+###
+# @name one
+GET {{baseURL}}/{{resource}}/1
+
+###
+# @name update
+PUT {{baseURL}}/{{resource}}/1
+Content-Type: application/json
+
+{
+    "name": "Wallet 0"
+}
+
+###
+# @name destroy
+DELETE {{baseURL}}/{{resource}}/1
