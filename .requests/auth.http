@@ -1,0 +1,31 @@
+@baseURL = http://127.0.0.1:8000
+@resource = auth
+
+###
+# @name register
+POST {{baseURL}}/{{resource}}/register
+Content-Type: application/json
+
+{
+    "first_name": "System",
+    "last_name": "Admin",
+    "username": "admin",
+    "email": "admin@mail.com",
+    "password": "secr3t",
+    "confirm_password": "secr3t"
+}
+
+###
+# @name auth
+POST {{baseURL}}/{{resource}}/token
+Content-Type: application/json
+
+{
+    "email": "rodrigopmatias@gmail.com",
+    "password": "secr3t"
+}
+
+###
+# @name me
+GET {{baseURL}}/{{resource}}/me
+Authorization: Bearer {{auth.response.body.token}}
