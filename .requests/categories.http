@@ -2,9 +2,20 @@
 @resource = categories
 
 ###
+# @name auth
+POST {{baseURL}}/auth/token
+Content-Type: application/json
+
+{
+    "email": "rodrigopmatias@gmail.com",
+    "password": "secr3t"
+}
+
+###
 # @name create
 POST {{baseURL}}/{{resource}}
 Content-Type: application/json
+Authorization: Bearer {{auth.response.body.token}}
 
 {
     "title": "My Category 1"
@@ -13,20 +24,24 @@ Content-Type: application/json
 ###
 # @name all
 GET {{baseURL}}/{{resource}}
+Authorization: Bearer {{auth.response.body.token}}
 
 ###
 # @name one
-GET {{baseURL}}/{{resource}}/1
+GET {{baseURL}}/{{resource}}/4
+Authorization: Bearer {{auth.response.body.token}}
 
 ###
 # @name update
 PUT {{baseURL}}/{{resource}}/1
 Content-Type: application/json
+Authorization: Bearer {{auth.response.body.token}}
 
 {
-    "title": "My Category 0"
+    "title": "My Category 0 (delete)"
 }
 
 ###
 # @name destroy
-DELETE {{baseURL}}/{{resource}}/3
+DELETE {{baseURL}}/{{resource}}/1
+Authorization: Bearer {{auth.response.body.token}}
