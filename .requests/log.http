@@ -1,0 +1,52 @@
+@baseURL = http://127.0.0.1:8000
+@resource = logs
+
+###
+# @name auth
+POST {{baseURL}}/auth/token
+Content-Type: application/json
+
+{
+    "email": "rodrigopmatias@gmail.com",
+    "password": "secr3t"
+}
+
+###
+# @name create
+POST {{baseURL}}/{{resource}}
+Authorization: Bearer {{auth.response.body.token}}
+Content-Type: application/json
+
+{
+    "title": "log 2",
+    "value": 7.55,
+    "when": null,
+    "schedule": null,
+    "wallet_id": 2,
+    "category_id": 2
+}
+
+###
+# @name all
+GET {{baseURL}}/{{resource}}
+Authorization: Bearer {{auth.response.body.token}}
+
+###
+# @name one
+GET {{baseURL}}/{{resource}}/1
+Authorization: Bearer {{auth.response.body.token}}
+
+###
+# @name update
+PUT {{baseURL}}/{{resource}}/1
+Authorization: Bearer {{auth.response.body.token}}
+Content-Type: application/json
+
+{
+    "name": "Wallet 0"
+}
+
+###
+# @name destroy
+DELETE {{baseURL}}/{{resource}}/1
+Authorization: Bearer {{auth.response.body.token}}

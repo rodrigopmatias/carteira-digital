@@ -5,8 +5,8 @@ from django.conf import settings
 
 class Category(models.Model):
     owner = models.ForeignKey(
-        getattr(settings, 'AUTH_USER_MODEL'), 
-        related_name='my_wallet_categories', 
+        getattr(settings, 'AUTH_USER_MODEL'),
+        related_name='my_wallet_categories',
         on_delete=models.PROTECT
     )
     title = models.CharField(max_length=100, unique=True)
@@ -20,8 +20,8 @@ class Category(models.Model):
 
 class Wallet(models.Model):
     owner = models.ForeignKey(
-        getattr(settings, 'AUTH_USER_MODEL'), 
-        related_name='my_wallets', 
+        getattr(settings, 'AUTH_USER_MODEL'),
+        related_name='my_wallets',
         on_delete=models.PROTECT
     )
     name = models.CharField(max_length=100)
@@ -33,6 +33,9 @@ class LogBase(models.Model):
 
     class Meta:
         abstract = True
+
+    def __str__(self) -> str:
+        return self.title
 
 class LogScheduleBase(LogBase):
     schedule = models.DateTimeField(null=True, blank=True)
@@ -51,17 +54,17 @@ class TransferLog(LogScheduleBase):
     to_wallet = models.ForeignKey(Wallet, related_name='+', on_delete=models.PROTECT)
     to_category = models.ForeignKey(Category, related_name='+', on_delete=models.PROTECT)
     withdraw = models.ForeignKey(
-        Log, 
-        related_name='as_withdraw_of_transfer', 
-        null=True, 
-        blank=True, 
+        Log,
+        related_name='as_withdraw_of_transfer',
+        null=True,
+        blank=True,
         on_delete=models.PROTECT
     )
     deposit = models.ForeignKey(
-        Log, 
-        related_name='as_deposit_of_transfer', 
-        null=True, 
-        blank=True, 
+        Log,
+        related_name='as_deposit_of_transfer',
+        null=True,
+        blank=True,
         on_delete=models.PROTECT
     )
 
@@ -77,4 +80,3 @@ class SplitedLog(LogBase):
 class SplitedLogPart(models.Model):
     splited_log = models.ForeignKey(SplitedLog, related_name='parts', on_delete=models.PROTECT)
     log = models.ForeignKey(Log, related_name='as_splited_log_part', on_delete=models.PROTECT)
-    
