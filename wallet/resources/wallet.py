@@ -1,7 +1,7 @@
+from wallet.helpers import owner_by_payload
 from wallet.models import Wallet
 from helpers.serializer import BaseSerializer
-from helpers.restfy import make_rest
-from django.http.request import HttpRequest
+from helpers.restfy import make_authorized_rest
 from django.db import models
 
 
@@ -20,11 +20,7 @@ class WalletSerializer(BaseSerializer):
         return result
 
 
-def catetory_prepare_payload(request: HttpRequest, payload: dict) -> dict:
-    payload.update(owner_id=1)
-    return payload
-
-wallet_root, wallet_by_id = make_rest(
+wallet_root, wallet_by_id = make_authorized_rest(
     WalletSerializer,
-    prepare_payload=catetory_prepare_payload
+    prepare_payload=owner_by_payload
 )

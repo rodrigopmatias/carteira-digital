@@ -1,6 +1,6 @@
 import json
 
-from django.http.response import HttpResponse, HttpResponseNotAllowed, JsonResponse
+from django.http.response import HttpResponse, HttpResponseForbidden, HttpResponseNotAllowed, JsonResponse
 from helpers.serializer import BaseSerializer
 
 
@@ -14,7 +14,60 @@ def not_implemented_method(request):
     )
 
 
-def make_rest(serializer: BaseSerializer, prepare_payload=None):
+def is_allowed(allowed, request):
+    if callable(allowed):
+        return allowed(request)
+    return allowed
+
+
+def user_required(request):
+    user = getattr(request, 'user', None)
+    return True  if user and user.is_active else False
+
+
+def have_permission(perm):
+    
+    def _is_allowed(request):
+        if not user_required(request):
+            return False
+        
+        user = request.user
+        return user.has_perm(perm)
+
+    return _is_allowed
+
+
+def is_allowed_method(Model, method):
+    method_map = {
+        'GET': 'view',
+        'POST': 'add',
+        'PUT': 'change',
+        'PATCH': 'change',
+        'DELETE': 'delete'
+    }
+
+    app_label = Model._meta.app_label
+    model_name = Model._meta.model_name
+    action = method_map.get(method, "undefined")
+
+    return have_permission(f'{app_label}.{action}_{model_name}')
+
+
+def make_authorized_rest(serialize: BaseSerializer, prepare_payload=None):
+    Model = serialize.model_class()
+
+    return make_rest(
+        serialize, 
+        prepare_payload,
+        allowed_view=is_allowed_method(Model, 'GET'),
+        allowed_add=is_allowed_method(Model, 'POST'),
+        allowed_change=is_allowed_method(Model, 'PUT'),
+        allowed_delete=is_allowed_method(Model, 'DELETE')
+    )
+
+
+def make_rest(serializer: BaseSerializer, prepare_payload=None, 
+        allowed_view=False, allowed_add=False, allowed_change=False, allowed_delete=False):
     
     Model = serializer.model_class()
 
@@ -153,14 +206,14 @@ def make_rest(serializer: BaseSerializer, prepare_payload=None):
         return status, result
 
     def root(request):
-        if request.method == 'GET':
+        if request.method == 'GET' and is_allowed(allowed_view, request):
             status, result = list(request)
 
             return JsonResponse(
                 result,
                 status=status
             )
-        elif request.method == 'POST':
+        elif request.method == 'POST' and is_allowed(allowed_add, request):
             status, result = create(request)
 
             return JsonResponse(
@@ -168,9 +221,17 @@ def make_rest(serializer: BaseSerializer, prepare_payload=None):
                 status=status
             )
         else:
-            return HttpResponseNotAllowed(
-                permitted_methods=['GET', 'POST']
-            )
+            if not request.method in ('GET', 'POST'):
+                return HttpResponseNotAllowed(
+                    permitted_methods=['GET', 'POST']
+                )
+            else:
+                return HttpResponseForbidden(
+                    content_type='application/json',
+                    content=json.dumps({
+                        'message': 'access not allowed'
+                    })
+                )
 
     def by_id(request, id):
         status = 501
@@ -178,11 +239,11 @@ def make_rest(serializer: BaseSerializer, prepare_payload=None):
             "message": "not implemented method"
         }
 
-        if request.method == 'GET':
+        if request.method == 'GET' and is_allowed(allowed_view, request):
             status, result = get(request, id)
-        elif request.method == 'DELETE':
+        elif request.method == 'DELETE' and is_allowed(allowed_delete, request):
             status, result = destroy(request, id)
-        elif request.method in ('PUT', 'PATCH'):
+        elif request.method in ('PUT', 'PATCH') and is_allowed(allowed_change, request):
             status, result = update(request, id)
         else:
             return HttpResponseNotAllowed(
