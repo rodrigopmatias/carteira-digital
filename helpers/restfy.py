@@ -26,11 +26,11 @@ def user_required(request):
 
 
 def have_permission(perm):
-    
+
     def _is_allowed(request):
         if not user_required(request):
             return False
-        
+
         user = request.user
         return user.has_perm(perm)
 
@@ -53,32 +53,37 @@ def is_allowed_method(Model, method):
     return have_permission(f'{app_label}.{action}_{model_name}')
 
 
-def make_authorized_rest(serialize: BaseSerializer, prepare_payload=None):
+def make_authorized_rest(serialize: BaseSerializer, prepare_payload=None, **params):
     Model = serialize.model_class()
 
     return make_rest(
-        serialize, 
+        serialize,
         prepare_payload,
         allowed_view=is_allowed_method(Model, 'GET'),
         allowed_add=is_allowed_method(Model, 'POST'),
         allowed_change=is_allowed_method(Model, 'PUT'),
-        allowed_delete=is_allowed_method(Model, 'DELETE')
+        allowed_delete=is_allowed_method(Model, 'DELETE'),
+        **params
     )
 
 
-def make_rest(serializer: BaseSerializer, prepare_payload=None, 
-        allowed_view=False, allowed_add=False, allowed_change=False, allowed_delete=False):
-    
+def make_rest(serializer: BaseSerializer, prepare_payload=None,
+        allowed_view=False, allowed_add=False, allowed_change=False, allowed_delete=False,
+        queryset=None):
+
     Model = serializer.model_class()
 
+    if not queryset:
+        queryset = lambda r: Model.objects.all()
+
     def destroy(request, id):
-        status = 501 
+        status = 501
         result = {
             'message': 'not implemented method'
         }
 
         try:
-            inst = Model.objects.get(pk=id)
+            inst = queryset(request).get(pk=id)
             inst.delete()
             status = 204
             result = None
@@ -94,13 +99,13 @@ def make_rest(serializer: BaseSerializer, prepare_payload=None,
         return status, result
 
     def update(request, id):
-        status = 501 
+        status = 501
         result = {
             'message': 'not implemented method'
         }
 
         try:
-            inst = Model.objects.get(pk=id)
+            inst = queryset(request).get(pk=id)
             payload = json.loads(request.body)
 
             if prepare_payload:
@@ -125,7 +130,7 @@ def make_rest(serializer: BaseSerializer, prepare_payload=None,
 
     def get(request, id):
         try:
-            return 200, serializer.encode(Model.objects.get(pk=id))
+            return 200, serializer.encode(queryset(request).get(pk=id))
         except Model.DoesNotExist:
             return 404, {
                 'message': f'{Model._meta.verbose_name} not found with primary key {id}'
@@ -136,7 +141,7 @@ def make_rest(serializer: BaseSerializer, prepare_payload=None,
             }
 
     def list(request):
-        query = Model.objects.all()
+        query = queryset(request).all()
         status = 501
         result = {
             'message': 'not implemented method'
@@ -148,7 +153,7 @@ def make_rest(serializer: BaseSerializer, prepare_payload=None,
         total = query.count()
 
         # filter
-        
+
         # sort
 
         # page
@@ -188,7 +193,7 @@ def make_rest(serializer: BaseSerializer, prepare_payload=None,
 
         try:
             payload = json.loads(request.body)
-        
+
             if prepare_payload:
                 payload = prepare_payload(request, payload)
 

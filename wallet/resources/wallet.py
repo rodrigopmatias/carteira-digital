@@ -1,4 +1,5 @@
-from wallet.helpers import owner_by_payload
+from django.db.models import query
+from wallet.helpers import owner_by_payload, queryset_by_owner
 from wallet.models import Wallet
 from helpers.serializer import BaseSerializer
 from helpers.restfy import make_authorized_rest
@@ -22,5 +23,6 @@ class WalletSerializer(BaseSerializer):
 
 wallet_root, wallet_by_id = make_authorized_rest(
     WalletSerializer,
-    prepare_payload=owner_by_payload
+    prepare_payload=owner_by_payload,
+    queryset=queryset_by_owner(Wallet)
 )

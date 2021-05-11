@@ -1,3 +1,4 @@
+from wallet.helpers import queryset_by_owner
 from helpers.serializer import BaseSerializer
 from helpers.restfy import make_authorized_rest
 from wallet.models import Log
@@ -24,6 +25,16 @@ class LogSerializer(BaseSerializer):
         return result
 
 
+def queryset(request):
+    user = getattr(request, 'user', None)
+
+    if user and user.is_active:
+        return Log.objects.filter(wallet__owner=user)
+
+    return Log.objects.none()
+
+
 log_root, log_by_id = make_authorized_rest(
-    LogSerializer
+    LogSerializer,
+    queryset=queryset
 )
