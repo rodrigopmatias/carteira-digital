@@ -41,7 +41,6 @@ def register(request):
             result = {
                 "message": str(e)
             }
-            raise e
     else:
         return HttpResponseNotAllowed(
             permitted_methods=['POST']
@@ -147,6 +146,6 @@ def me(request):
         }
 
     return JsonResponse(
-        result, 
+        result,
         status=status
     )

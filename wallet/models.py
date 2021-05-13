@@ -1,9 +1,12 @@
+from datetime import datetime
+from base.models import UUIDModel
 from django.db import models
 from django.conf import settings
+from django.db.models.manager import BaseManager
 
 # Create your models here.
 
-class Category(models.Model):
+class Category(UUIDModel):
     owner = models.ForeignKey(
         getattr(settings, 'AUTH_USER_MODEL'),
         related_name='my_wallet_categories',
@@ -18,7 +21,7 @@ class Category(models.Model):
         return self.title
 
 
-class Wallet(models.Model):
+class Wallet(UUIDModel):
     owner = models.ForeignKey(
         getattr(settings, 'AUTH_USER_MODEL'),
         related_name='my_wallets',
@@ -26,7 +29,16 @@ class Wallet(models.Model):
     )
     name = models.CharField(max_length=100)
 
-class LogBase(models.Model):
+    @property
+    def paid_logs(self) -> BaseManager:
+        return self.logs.filter(when__lte=datetime.now())
+
+    @property
+    def pendent_logs(self) -> BaseManager:
+        return self.logs.exclude(when__lte=datetime.now())
+
+
+class LogBase(UUIDModel):
     title = models.CharField(max_length=255)
     value = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     when = models.DateTimeField(null=True, blank=True)
@@ -77,6 +89,6 @@ class SplitedLog(LogBase):
     split_number = models.PositiveSmallIntegerField()
 
 
-class SplitedLogPart(models.Model):
+class SplitedLogPart(UUIDModel):
     splited_log = models.ForeignKey(SplitedLog, related_name='parts', on_delete=models.PROTECT)
     log = models.ForeignKey(Log, related_name='as_splited_log_part', on_delete=models.PROTECT)
