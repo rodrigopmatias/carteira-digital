@@ -21,7 +21,7 @@ POST {{baseURL}}/{{resource}}/token
 Content-Type: application/json
 
 {
-    "email": "rodrigopmatias@gmail.com",
+    "email": "admin@mail.com",
     "password": "secr3t"
 }
 

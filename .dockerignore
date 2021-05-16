@@ -1,0 +1,7 @@
+Dockerfile
+.git
+.vscode
+.requests
+env
+app.conf.json
+compose.d

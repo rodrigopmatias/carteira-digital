@@ -1,3 +1,4 @@
--Ur base.txt
+-r base.txt
 
-ipython>=7.23
+ipython>=7.23.1
+pylama

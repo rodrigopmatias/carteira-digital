@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+    api:
+        image: rodrigopmatias/ewallet:unstable
+        user: ${USER_ID}
+        ports:
+            - 8000:8000
+        environment:
+            APP_ENV: development
+            APP_CONFIG: /etc/app.conf.json
+        volumes:
+            - /etc/passwd:/etc/passwd:ro
+            - ${PWD}:/app
+            - ${PWD}/app.conf.json:/etc/app.conf.json
+        networks:
+            - dbnet
+
+networks:
+    dbnet:
+        external: true
+        name: psql_dbnet

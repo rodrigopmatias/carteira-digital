@@ -7,14 +7,13 @@ POST {{baseURL}}/auth/token
 Content-Type: application/json
 
 {
-    "email": "rodrigopmatias@gmail.com",
+    "email": "admin@mail.com",
     "password": "secr3t"
 }
 
 ###
 # @name create
 POST {{baseURL}}/{{resource}}
-
 Authorization: Bearer {{auth.response.body.token}}
 Content-Type: application/json
 
@@ -29,12 +28,12 @@ Authorization: Bearer {{auth.response.body.token}}
 
 ###
 # @name one
-GET {{baseURL}}/{{resource}}/1
+GET {{baseURL}}/{{resource}}/{{all.response.body.wallets[0].pk}}
 Authorization: Bearer {{auth.response.body.token}}
 
 ###
 # @name update
-PUT {{baseURL}}/{{resource}}/1
+PUT {{baseURL}}/{{resource}}/{{all.response.body.wallets[0].pk}}
 Authorization: Bearer {{auth.response.body.token}}
 Content-Type: application/json
 
@@ -44,5 +43,5 @@ Content-Type: application/json
 
 ###
 # @name destroy
-DELETE {{baseURL}}/{{resource}}/1
+DELETE {{baseURL}}/{{resource}}/{{all.response.body.wallets[0].pk}}
 Authorization: Bearer {{auth.response.body.token}}
